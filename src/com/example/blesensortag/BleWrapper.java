@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
+
+
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -19,9 +21,13 @@ import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 public class BleWrapper {
+	// CREATE HANDLER
+	Handler handler; 
+	
 	/* defines (in milliseconds) how often RSSI should be updated */
     private static final int RSSI_UPDATE_TIME_INTERVAL = 1500; // 1.5 seconds
 
@@ -32,6 +38,9 @@ public class BleWrapper {
     
     /* creates BleWrapper object, set its parent activity and callback object */
     public BleWrapper(Activity parent, BleWrapperUiCallbacks callback) {
+    	// Creates handler that is attached to UI thread
+    	handler = new Handler(Looper.getMainLooper());
+    	
     	this.mParent = parent;
     	mUiCallback = callback;
     	if(mUiCallback == null) mUiCallback = NULL_CALLBACK;
@@ -119,7 +128,14 @@ public class BleWrapper {
                 return false;
             }
             // connect with remote device
-        	mBluetoothGatt = mBluetoothDevice.connectGatt(mParent, false, mBleCallback);
+         handler.post(new Runnable(){
+			@Override
+			public void run() {
+				Log.d("UI Thread", "In UI Thread");
+				mBluetoothGatt = mBluetoothDevice.connectGatt(mParent, false, mBleCallback);
+			}
+        	
+         });
         }
         return true;
     }  
@@ -340,6 +356,7 @@ public class BleWrapper {
     
     /* callbacks called for any action on particular Ble Device */
     private final BluetoothGattCallback mBleCallback = new BluetoothGattCallback() {
+    	
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
@@ -359,8 +376,11 @@ public class BleWrapper {
             else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
             	mConnected = false;
             	mUiCallback.uiDeviceDisconnected(mBluetoothGatt, mBluetoothDevice);
+            	
             }
         }
+        
+
 
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
