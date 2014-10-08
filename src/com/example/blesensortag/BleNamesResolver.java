@@ -83,6 +83,7 @@ public class BleNamesResolver {
 		mServices.put("00001814-0000-1000-8000-00805f9b34fb", "Running Speed and Cadence");
 		mServices.put("00001813-0000-1000-8000-00805f9b34fb", "Scan Parameters");
 		mServices.put("00001804-0000-1000-8000-00805f9b34fb", "Tx Power");
+		mServices.put("f000aa10-0451-4000-b000-000000000000", "TI Accel");
 		
 		mCharacteristics.put("00002a43-0000-1000-8000-00805f9b34fb", "Alert Category ID");
 		mCharacteristics.put("00002a42-0000-1000-8000-00805f9b34fb", "Alert Category ID Bit Mask");

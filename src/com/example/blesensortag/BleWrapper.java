@@ -276,20 +276,20 @@ public class BleWrapper {
         	// get first four bytes and transform it to integer
         	intValue = 0;
         	if(rawValue.length > 0) intValue = (int)rawValue[0];
-        	if(rawValue.length > 1) intValue = intValue + ((int)rawValue[1] << 8); 
-        	if(rawValue.length > 2) intValue = intValue + ((int)rawValue[2] << 8); 
-        	if(rawValue.length > 3) intValue = intValue + ((int)rawValue[3] << 8); 
+        	if(rawValue.length > 1) intValue = intValue + ((int)rawValue[1] << 8); // X
+        	if(rawValue.length > 2) intValue = intValue + ((int)rawValue[2] << 8);  // Y?
+        	if(rawValue.length > 3) intValue = intValue + ((int)rawValue[3] << 8);  // Z
         	
-            if (rawValue.length > 0) {
+            /*if (rawValue.length > 0) {
                 final StringBuilder stringBuilder = new StringBuilder(rawValue.length);
                 for(byte byteChar : rawValue) {
                     stringBuilder.append(String.format("%c", byteChar));
                 }
                 strValue = stringBuilder.toString();
-            }
+            }*/
         }
-        
-        String timestamp = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSS").format(new Date());
+        String timestamp ="Sucess";
+        /*String timestamp = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSS").format(new Date());*/
         mUiCallback.uiNewValueForCharacteristic(mBluetoothGatt,
                                                 mBluetoothDevice,
                                                 mBluetoothSelectedService,
@@ -298,6 +298,7 @@ public class BleWrapper {
         		                                intValue,
         		                                rawValue,
         		                                timestamp);
+       
     }    
     
     /* reads and return what what FORMAT is indicated by characteristic's properties

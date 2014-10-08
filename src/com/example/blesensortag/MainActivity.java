@@ -16,25 +16,30 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.util.List;
 import java.util.UUID;
 
 
-
-
 public class MainActivity extends Activity {
 	private final String LOGTAG = "BLETEST";
 	//Creates BLEWrapper instance
 	private BleWrapper mBleWrapper = null; 
+	
+	//This only connects the desired target
     private final String TARGET = "SensorTag";
+    private enum mSensorState {IDLE, ACC_ENABLE, ACC_READ, IRT_ENABLE};
     private mSensorState mState;
     private String gattList = "";
     private TextView mTv;
-
-    private enum mSensorState {IDLE, ACC_ENABLE, ACC_READ};
     
+    
+    
+    //--------------------------------------------------------------------
+    // TI SensorTag UUIDs
+    //--------------------------------------------------------------------
 	public final static UUID 
 	    UUID_IRT_SERV = fromString("f000aa00-0451-4000-b000-000000000000"),
 	    UUID_IRT_DATA = fromString("f000aa01-0451-4000-b000-000000000000"),
@@ -67,6 +72,9 @@ public class MainActivity extends Activity {
 	    UUID_KEY_DATA = fromString("0000ffe1-0000-1000-8000-00805f9b34fb"),
 	    UUID_CCC_DESC = fromString("00002902-0000-1000-8000-00805f9b34fb");
 	
+    //--------------------------------------------------------------------
+    // ON CREATE function
+    //--------------------------------------------------------------------
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,6 +83,9 @@ public class MainActivity extends Activity {
         //Initialize mBleWrapper object:
         mBleWrapper = new BleWrapper(this, new BleWrapperUiCallbacks.Null()
         {
+        //*******************	
+        // If a device is found
+        //*******************
         @Override
         public void uiDeviceFound(final BluetoothDevice device,final int rssi,final byte[] record)
         {
@@ -95,13 +106,15 @@ public class MainActivity extends Activity {
         			}
         			}
         }
-        
+        //*******************	
+        // Stores BLE device's services and enables them
+        //*******************
         @Override
         public void uiAvailableServices(BluetoothGatt gatt, BluetoothDevice device, List <BluetoothGattService> services)
         {
             BluetoothGattCharacteristic c;
             BluetoothGattDescriptor d;
-            
+            //Retrieves Services:
         	for (BluetoothGattService service : services)
         		{
         			String serviceName = BleNamesResolver.resolveUuid(service.getUuid().toString());
@@ -110,7 +123,7 @@ public class MainActivity extends Activity {
 
                     mBleWrapper.getCharacteristicsForService(service);
         		}
-            // enable services
+            //Enable services:
             Log.d(LOGTAG, "uiAvailableServices: Enabling services");
             c = gatt.getService(UUID_ACC_SERV).getCharacteristic(UUID_ACC_CONF);
             mBleWrapper.writeDataToCharacteristic(c, new byte[] {0x01});
@@ -131,7 +144,9 @@ public class MainActivity extends Activity {
                 gattList += "Characteristic: " + charName + "\n";
             }
         }
-        
+        //*******************	
+        // Successful Write function
+        //******************* 
         @Override
         public void uiSuccessfulWrite(	BluetoothGatt gatt,
                                         BluetoothDevice device, 
@@ -147,10 +162,10 @@ public class MainActivity extends Activity {
             switch (mState)
             {
             case ACC_ENABLE:
-                Log.d(LOGTAG, "uiSuccessfulWrite: Reading acc");
-                c = gatt.getService(UUID_ACC_SERV).getCharacteristic(UUID_ACC_DATA);
+            	Log.d(LOGTAG, "uiSuccessfulWrite: Successfully enabled accelerometer");
+            	/*c = gatt.getService(UUID_ACC_SERV).getCharacteristic(UUID_ACC_DATA);
                 mBleWrapper.requestCharacteristicValue(c);
-                mState = mSensorState.ACC_READ;
+                mState = mSensorState.ACC_READ;*/
                 break;
 
             case ACC_READ:
@@ -184,11 +199,19 @@ public class MainActivity extends Activity {
                                                 String timestamp) 
         {
             super.uiNewValueForCharacteristic(gatt, device, service, ch, strValue, intValue, rawValue, timestamp);
+            
             Log.d(LOGTAG, "uiNewValueForCharacteristic");
+            // decode current read operation
+            switch (mState)
+            {
+            	case ACC_READ:
+            		Log.d(LOGTAG, "uiNewValueForCharacteristic: Accelerometer data:" + intValue);
+            	break;
+            }
             for (byte b:rawValue)
             {
-                Log.d(LOGTAG, "Val: " + b);
-            }				
+            Log.d(LOGTAG, "Val: " + b);
+            }
         }
         
         @Override
@@ -203,13 +226,25 @@ public class MainActivity extends Activity {
             gatt.disconnect();
         }
         
+        
+        @Override
+        public void uiGotNotification(	BluetoothGatt gatt,
+                BluetoothDevice device, 
+                BluetoothGattService service,
+                BluetoothGattCharacteristic characteristic) 
+        {
+            super.uiGotNotification(gatt, device, service, characteristic);
+            String ch = BleNamesResolver.resolveCharacteristicName(characteristic.getUuid().toString());
+
+            Log.d(LOGTAG,  "uiGotNotification: " + ch);
+        }
         });
         
+        //CHECK FOR BLE
         if (mBleWrapper.checkBleHardwareAvailable() == false)
         {
-        Toast.makeText(this, "No BLE-compatible hardware detected",
-        Toast.LENGTH_SHORT).show();
-        finish();
+        	Toast.makeText(this, "No BLE-compatible hardware detected",Toast.LENGTH_SHORT).show();
+        	finish();
         }
     
     
@@ -217,22 +252,27 @@ public class MainActivity extends Activity {
     
     }
 
+    //--------------------------------------------------------------------
+    // ON RESUME function
+    //--------------------------------------------------------------------
     @Override
     protected void onResume() {
-    super.onResume();
-    // check for Bluetooth enabled on each resume
-    if (mBleWrapper.isBtEnabled() == false)
-    {
-    // Bluetooth is not enabled. Request to user to turn it on
-    Intent enableBtIntent = new Intent(BluetoothAdapter.
-    ACTION_REQUEST_ENABLE);
-    startActivity(enableBtIntent);
-    finish();
-    }
-    // init ble wrapper
-    mBleWrapper.initialize();
+    	super.onResume();
+    	// Check for Bluetooth enabled on each resume
+    	if (mBleWrapper.isBtEnabled() == false)
+    		{
+    		// Bluetooth is not enabled. Request to user to turn it on
+    			Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+    			startActivity(enableBtIntent);
+    			finish();
+    		}
+    	// init ble wrapper
+    	mBleWrapper.initialize();
     }
     
+    //--------------------------------------------------------------------
+    // ON PAUSE function
+    //--------------------------------------------------------------------
     @Override
     protected void onPause() {
     super.onPause();
@@ -240,15 +280,25 @@ public class MainActivity extends Activity {
     mBleWrapper.close();
     }
     
+    //--------------------------------------------------------------------
+    // OPTIONS MENU
+    //--------------------------------------------------------------------
+    
+    //*******
+    // Creates options menu:
+    //*******
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
-
+    //*******
+    // Options menu functionality:
+    //*******
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+    	
     	switch (item.getItemId())
     	{
     	case R.id.action_scan:
@@ -259,7 +309,7 @@ public class MainActivity extends Activity {
     			Log.d(LOGTAG, "StopScan");
     			mBleWrapper.stopScanning();
     			break;
-    		case R.id.action_settings:
+    		case R.id.action_test:
     			testButton();
     			break;
     		default:
@@ -271,7 +321,9 @@ public class MainActivity extends Activity {
     public void scan(){
     	mBleWrapper.startScanning();
     }
-    
+    //--------------------------------------------------------------------
+    // MISC.
+    //--------------------------------------------------------------------
     private void testButton()
     {
         BluetoothGatt gatt;
@@ -284,15 +336,18 @@ public class MainActivity extends Activity {
         //mTv = (TextView)findViewById(R.id.textView1);
         //mTv.setText(gattList);
 
-        //Log.d(LOGTAG, "testButton: Reading acc");
-        //gatt = mBleWrapper.getGatt();
-        //c = gatt.getService(UUID_ACC_SERV).getCharacteristic(UUID_ACC_DATA);
-        //mBleWrapper.requestCharacteristicValue(c);
-
-        //Log.d(LOGTAG, "uiAvailableServices: Setting notification");
+        // MANUALLY POLL
+        Log.d(LOGTAG, "testButton: Reading acc");
         gatt = mBleWrapper.getGatt();
         c = gatt.getService(UUID_ACC_SERV).getCharacteristic(UUID_ACC_DATA);
-        mBleWrapper.setNotificationForCharacteristic(c, true);
+        mBleWrapper.requestCharacteristicValue(c);
+        mState = mSensorState.ACC_READ;
+
+        
+        //Log.d(LOGTAG, "uiAvailableServices: Setting notification");
+        //gatt = mBleWrapper.getGatt();
+        //c = gatt.getService(UUID_ACC_SERV).getCharacteristic(UUID_ACC_DATA);
+        //mBleWrapper.setNotificationForCharacteristic(c, true);
         
         //c = gatt.getService(UUID_IRT_SERV).getCharacteristic(UUID_IRT_DATA);
         //mBleWrapper.requestCharacteristicValue(c);
