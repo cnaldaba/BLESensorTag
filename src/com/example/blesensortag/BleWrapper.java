@@ -234,60 +234,13 @@ public class BleWrapper {
         String strValue = null;
         int intValue = 0;
         
+        float[] vector;
+        vector = new float[3];
         // lets read and do real parsing of some characteristic to get meaningful value from it 
         UUID uuid = ch.getUuid();
+        vector = sensorTag.getAccelerometerValue(ch);
+
         
-        if(uuid.equals(BleDefinedUUIDs.Characteristic.HEART_RATE_MEASUREMENT)) { // heart rate
-        	// follow https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.heart_rate_measurement.xml
-        	// first check format used by the device - it is specified in bit 0 and tells us if we should ask for index 1 (and uint8) or index 2 (and uint16)
-        	int index = ((rawValue[0] & 0x01) == 1) ? 2 : 1;
-        	// also we need to define format
-        	int format = (index == 1) ? BluetoothGattCharacteristic.FORMAT_UINT8 : BluetoothGattCharacteristic.FORMAT_UINT16;
-        	// now we have everything, get the value
-        	intValue = ch.getIntValue(format, index);
-        	strValue = intValue + " bpm"; // it is always in bpm units
-        }
-        else if (uuid.equals(BleDefinedUUIDs.Characteristic.HEART_RATE_MEASUREMENT) || // manufacturer name string
-        		 uuid.equals(BleDefinedUUIDs.Characteristic.MODEL_NUMBER_STRING) || // model number string)
-        		 uuid.equals(BleDefinedUUIDs.Characteristic.FIRMWARE_REVISION_STRING)) // firmware revision string
-        {
-        	// follow https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.manufacturer_name_string.xml etc.
-        	// string value are usually simple utf8s string at index 0
-        	strValue = ch.getStringValue(0);
-        }
-        else if(uuid.equals(BleDefinedUUIDs.Characteristic.APPEARANCE)) { // appearance
-        	// follow: https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.gap.appearance.xml
-        	intValue  = ((int)rawValue[1]) << 8;
-        	intValue += rawValue[0];
-        	strValue = BleNamesResolver.resolveAppearance(intValue);
-        }
-        else if(uuid.equals(BleDefinedUUIDs.Characteristic.BODY_SENSOR_LOCATION)) { // body sensor location
-        	// follow: https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.body_sensor_location.xml
-        	intValue = rawValue[0];
-        	strValue = BleNamesResolver.resolveHeartRateSensorLocation(intValue);
-        }
-        else if(uuid.equals(BleDefinedUUIDs.Characteristic.BATTERY_LEVEL)) { // battery level
-        	// follow: https://developer.bluetooth.org/gatt/characteristics/Pages/CharacteristicViewer.aspx?u=org.bluetooth.characteristic.battery_level.xml
-        	intValue = rawValue[0];
-        	strValue = "" + intValue + "% battery level";
-        }        
-        else {
-        	// not known type of characteristic, so we need to handle this in "general" way
-        	// get first four bytes and transform it to integer
-        	intValue = 0;
-        	if(rawValue.length > 0) intValue = (int)rawValue[0];
-        	if(rawValue.length > 1) intValue = intValue + ((int)rawValue[1] << 8); // X
-        	if(rawValue.length > 2) intValue = intValue + ((int)rawValue[2] << 8);  // Y?
-        	if(rawValue.length > 3) intValue = intValue + ((int)rawValue[3] << 8);  // Z
-        	
-            /*if (rawValue.length > 0) {
-                final StringBuilder stringBuilder = new StringBuilder(rawValue.length);
-                for(byte byteChar : rawValue) {
-                    stringBuilder.append(String.format("%c", byteChar));
-                }
-                strValue = stringBuilder.toString();
-            }*/
-        }
         String timestamp ="Sucess";
         /*String timestamp = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss.SSS").format(new Date());*/
         mUiCallback.uiNewValueForCharacteristic(mBluetoothGatt,
@@ -297,7 +250,8 @@ public class BleWrapper {
         		                                strValue,
         		                                intValue,
         		                                rawValue,
-        		                                timestamp);
+        		                                timestamp,
+        		                                vector);
        
     }    
     

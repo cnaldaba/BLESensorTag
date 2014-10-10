@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.util.List;
@@ -196,16 +197,27 @@ public class MainActivity extends Activity {
                                                 String strValue,
                                                 int intValue, 
                                                 byte[] rawValue, 
-                                                String timestamp) 
+                                                String timestamp,
+                                                final float[] vector) 
         {
-            super.uiNewValueForCharacteristic(gatt, device, service, ch, strValue, intValue, rawValue, timestamp);
+            
+        	super.uiNewValueForCharacteristic(gatt, device, service, ch, strValue, intValue, rawValue, timestamp,vector);
             
             Log.d(LOGTAG, "uiNewValueForCharacteristic");
             // decode current read operation
             switch (mState)
             {
             	case ACC_READ:
-            		Log.d(LOGTAG, "uiNewValueForCharacteristic: Accelerometer data:" + intValue);
+            		Log.d(LOGTAG, "uiNewValueForCharacteristic: Accelerometer data:" + vector[0] +  "," + vector[1] +  "," + vector[2] );
+            		//Sends data to main UI thread
+            		runOnUiThread(new Runnable(){
+            			@Override
+            			public void run() {
+            				TextView t;
+            				t = (TextView)findViewById(R.id.accelText1);
+            				t.setText("Accelerometer data:" + vector[0] +  "," + vector[1] +  "," + vector[2]);
+            			}
+            			});
             	break;
             }
             for (byte b:rawValue)
@@ -246,8 +258,27 @@ public class MainActivity extends Activity {
         	Toast.makeText(this, "No BLE-compatible hardware detected",Toast.LENGTH_SHORT).show();
         	finish();
         }
-    
-    
+        
+        //*******************	
+        // Read button onClick init
+        //*******************
+        final Button button = (Button) findViewById(R.id.readButton);
+        button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+            	BluetoothGatt gatt;
+                BluetoothGattCharacteristic c;
+
+                if (!mBleWrapper.isConnected()) {
+                    return;
+                }
+                // MANUALLY POLL
+                Log.d(LOGTAG, "testButton: Reading acc");
+                gatt = mBleWrapper.getGatt();
+                c = gatt.getService(UUID_ACC_SERV).getCharacteristic(UUID_ACC_DATA);
+                mBleWrapper.requestCharacteristicValue(c);
+                mState = mSensorState.ACC_READ;
+            }
+        });
    
     
     }
@@ -358,5 +389,7 @@ public class MainActivity extends Activity {
         //			Log.d(LOGTAG, "testButton: " + c.getValue()[0]);
         //		}
     }
+    
+
     
 }
