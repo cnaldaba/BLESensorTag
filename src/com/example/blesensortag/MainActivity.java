@@ -30,6 +30,7 @@ import java.util.UUID;
 
 public class MainActivity extends Activity {
 	private final String LOGTAG = "BLETEST";
+	private static final long SCAN_PERIOD = 10000; // Used to scan for devices for only 10 secs
 	//Creates BLEWrapper instance
 	private BleWrapper mBleWrapper = null; 
 	
@@ -91,7 +92,9 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        //Initialize mBleWrapper object:
+        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@	
+        // INITIALIZE mBleWrapper OBJECT
+        //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         mBleWrapper = new BleWrapper(this, new BleWrapperUiCallbacks.Null()
         {
         //*******************	
@@ -103,27 +106,18 @@ public class MainActivity extends Activity {
         	String msg = "uiDeviceFound: "+device.getName()+", "+rssi+", "+ String.valueOf(rssi);
         			Log.d("DEBUG", "uiDeviceFound: " + msg);
         			
-        			runOnUiThread(new Runnable(){
-            			@Override
-            			public void run() {
-            				BTArrayAdapter.add(device.getName()+ "\n" + device.getAddress());
-            			}
-        				});
+ 
+        		      handler.post(new Runnable(){
+        					@Override
+        					public void run() {
+        						Log.d("UI Thread", "In UI Thread");
+        						BTArrayAdapter.add(device.getName()+ "\n" + device.getAddress());
+        					}
+        		        	
+        		         });
         			
         			
-        			/*if (device.getName().equals("SensorTag") == true)
-        			{
-        			boolean status;
-        			status = mBleWrapper.connect(device.getAddress().toString());
-        			
-        			if (status == false)
-        			{
-        			Log.d("DEBUG", "uiDeviceFound: Connection problem");
-        			}
-        			else{
-        				Log.d("DEBUG", "Connection successful");
-        			}
-        			}*/
+
         }
         //*******************	
         // Stores BLE device's services and enables them
@@ -224,14 +218,17 @@ public class MainActivity extends Activity {
             	case ACC_READ:
             		Log.d(LOGTAG, "uiNewValueForCharacteristic: Accelerometer data:" + vector[0] +  "," + vector[1] +  "," + vector[2] );
             		//Sends data to main UI thread
-            		runOnUiThread(new Runnable(){
-            			@Override
-            			public void run() {
-            				TextView t;
-            				t = (TextView)findViewById(R.id.accelText1);
-            				t.setText("Accelerometer data:" + vector[0] +  "," + vector[1] +  "," + vector[2]);
-            			}
-            			});
+            		
+            	      handler.post(new Runnable(){
+            				@Override
+            				public void run() {
+            					TextView t;
+                				t = (TextView)findViewById(R.id.accelText1);
+                				t.setText("Accelerometer data:" + vector[0] +  "," + vector[1] +  "," + vector[2]);
+            				}
+            	        	
+            	         });
+            		
             	break;
             }
             for (byte b:rawValue)
@@ -266,15 +263,24 @@ public class MainActivity extends Activity {
         }
         });
         
-        //CHECK FOR BLE
+        //*******************	
+        // Checks for BLE
+        //******************* 
         if (mBleWrapper.checkBleHardwareAvailable() == false)
         {
         	Toast.makeText(this, "No BLE-compatible hardware detected",Toast.LENGTH_SHORT).show();
         	finish();
         }
         
+        //*******************	
+        // Initializes buttons
+        //*******************        
 
        initButtons();
+       
+       //*******************	
+       // Initializes list for discovered devices
+       //******************* 
        BTArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
        myListView = (ListView)findViewById(R.id.listView1);
        myListView.setAdapter(BTArrayAdapter);
@@ -283,12 +289,9 @@ public class MainActivity extends Activity {
 		@Override
 		public void onItemClick(AdapterView<?> parent, View view, int position,
 				long id) {
-			Toast.makeText(getApplicationContext(),
-		    	       "Click ListItem Number " + position, Toast.LENGTH_LONG)
-		    	       .show();
 			String item = (String) parent.getItemAtPosition(position);
 			String[] separated = item.split("\n");
-			String device  = separated[0];
+			//String device  = separated[0];
 			String address  = separated[1];
 			
 			boolean status;
@@ -355,16 +358,26 @@ public class MainActivity extends Activity {
     	
     	switch (item.getItemId())
     	{
-    	case R.id.action_scan:
+    		case R.id.action_scan:
     			Log.d(LOGTAG, "startScan");
     			mBleWrapper.startScanning();
+    			
+    			//Stops scanning after 10 seconds
+    			handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                    	mBleWrapper.stopScanning();
+                    	Log.d(LOGTAG, "Stop Scanning");
+                    }
+                }, SCAN_PERIOD);
+    			
     			break;
     		case R.id.action_stop:
     			Log.d(LOGTAG, "StopScan");
     			mBleWrapper.stopScanning();
     			break;
     		case R.id.action_test:
-    			testButton();
+    			//testButton();
     			break;
     		default:
     		break;
@@ -378,26 +391,7 @@ public class MainActivity extends Activity {
     //--------------------------------------------------------------------
     // MISC.
     //--------------------------------------------------------------------
-    private void testButton()
-    {
-        BluetoothGatt gatt;
-        BluetoothGattCharacteristic c;
-
-        if (!mBleWrapper.isConnected()) {
-            return;
-        }
-
-    
-
-        // MANUALLY POLL
-        Log.d(LOGTAG, "testButton: Reading acc");
-        gatt = mBleWrapper.getGatt();
-        c = gatt.getService(UUID_ACC_SERV).getCharacteristic(UUID_ACC_DATA);
-        mBleWrapper.requestCharacteristicValue(c);
-        mState = mSensorState.ACC_READ;
-
-      
-    }
+ 
     
     private void initButtons(){
     	//*******************	
@@ -410,7 +404,9 @@ public class MainActivity extends Activity {
             	Log.d(LOGTAG, "Start polling TI sensorTag");
             }
         });
-        
+       	//*******************	
+        // Stop button init
+        //*******************
         final Button button2 = (Button) findViewById(R.id.stopButton);
         button2.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -421,6 +417,10 @@ public class MainActivity extends Activity {
     }
     
     
+    
+   	//*******************	
+    // Used for automated polling
+    //*******************
     private Runnable runnable = new Runnable() {
     	   @Override
     	   public void run() {
@@ -430,7 +430,7 @@ public class MainActivity extends Activity {
                 if (!mBleWrapper.isConnected()) {
                     return;
                 }
-                // MANUALLY POLL
+                // requests an accelerometer read
                 Log.d(LOGTAG, "testButton: Reading acc");
                 gatt = mBleWrapper.getGatt();
                 c = gatt.getService(UUID_ACC_SERV).getCharacteristic(UUID_ACC_DATA);

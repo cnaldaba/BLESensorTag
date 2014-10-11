@@ -29,7 +29,7 @@ public class BleWrapper {
 	Handler handler; 
 	
 	/* defines (in milliseconds) how often RSSI should be updated */
-    private static final int RSSI_UPDATE_TIME_INTERVAL = 1500; // 1.5 seconds
+    private static final int RSSI_UPDATE_TIME_INTERVAL = 5000; // 1.5 seconds
 
     /* callback object through which we are returning results to the caller */
     private BleWrapperUiCallbacks mUiCallback = null;
