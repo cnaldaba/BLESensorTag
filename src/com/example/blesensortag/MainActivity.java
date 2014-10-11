@@ -17,7 +17,11 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.util.List;
@@ -36,6 +40,12 @@ public class MainActivity extends Activity {
     private String gattList = "";
     private TextView mTv;
     
+    private Handler handler = new Handler();
+    
+    //BLE device list
+    private ArrayAdapter<String> BTArrayAdapter;
+    private ListView myListView;
+
     
     
     //--------------------------------------------------------------------
@@ -93,7 +103,15 @@ public class MainActivity extends Activity {
         	String msg = "uiDeviceFound: "+device.getName()+", "+rssi+", "+ String.valueOf(rssi);
         			Log.d("DEBUG", "uiDeviceFound: " + msg);
         			
-        			if (device.getName().equals("SensorTag") == true)
+        			runOnUiThread(new Runnable(){
+            			@Override
+            			public void run() {
+            				BTArrayAdapter.add(device.getName()+ "\n" + device.getAddress());
+            			}
+        				});
+        			
+        			
+        			/*if (device.getName().equals("SensorTag") == true)
         			{
         			boolean status;
         			status = mBleWrapper.connect(device.getAddress().toString());
@@ -105,7 +123,7 @@ public class MainActivity extends Activity {
         			else{
         				Log.d("DEBUG", "Connection successful");
         			}
-        			}
+        			}*/
         }
         //*******************	
         // Stores BLE device's services and enables them
@@ -164,11 +182,7 @@ public class MainActivity extends Activity {
             {
             case ACC_ENABLE:
             	Log.d(LOGTAG, "uiSuccessfulWrite: Successfully enabled accelerometer");
-            	/*c = gatt.getService(UUID_ACC_SERV).getCharacteristic(UUID_ACC_DATA);
-                mBleWrapper.requestCharacteristicValue(c);
-                mState = mSensorState.ACC_READ;*/
                 break;
-
             case ACC_READ:
                 Log.d(LOGTAG, "uiSuccessfulWrite: state = ACC_READ");					
                 break;
@@ -259,27 +273,36 @@ public class MainActivity extends Activity {
         	finish();
         }
         
-        //*******************	
-        // Read button onClick init
-        //*******************
-        final Button button = (Button) findViewById(R.id.readButton);
-        button.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-            	BluetoothGatt gatt;
-                BluetoothGattCharacteristic c;
 
-                if (!mBleWrapper.isConnected()) {
-                    return;
-                }
-                // MANUALLY POLL
-                Log.d(LOGTAG, "testButton: Reading acc");
-                gatt = mBleWrapper.getGatt();
-                c = gatt.getService(UUID_ACC_SERV).getCharacteristic(UUID_ACC_DATA);
-                mBleWrapper.requestCharacteristicValue(c);
-                mState = mSensorState.ACC_READ;
-            }
-        });
-   
+       initButtons();
+       BTArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
+       myListView = (ListView)findViewById(R.id.listView1);
+       myListView.setAdapter(BTArrayAdapter);
+       myListView.setOnItemClickListener(new OnItemClickListener(){
+ 
+		@Override
+		public void onItemClick(AdapterView<?> parent, View view, int position,
+				long id) {
+			Toast.makeText(getApplicationContext(),
+		    	       "Click ListItem Number " + position, Toast.LENGTH_LONG)
+		    	       .show();
+			String item = (String) parent.getItemAtPosition(position);
+			String[] separated = item.split("\n");
+			String device  = separated[0];
+			String address  = separated[1];
+			
+			boolean status;
+			status = mBleWrapper.connect(address);
+			
+			if (status == false)
+			{
+			Log.d("DEBUG", "uiDeviceFound: Connection problem");
+			}
+			else{
+				Log.d("DEBUG", "Connection successful");
+			}
+		}
+    	 }); 
     
     }
 
@@ -364,8 +387,7 @@ public class MainActivity extends Activity {
             return;
         }
 
-        //mTv = (TextView)findViewById(R.id.textView1);
-        //mTv.setText(gattList);
+    
 
         // MANUALLY POLL
         Log.d(LOGTAG, "testButton: Reading acc");
@@ -374,22 +396,52 @@ public class MainActivity extends Activity {
         mBleWrapper.requestCharacteristicValue(c);
         mState = mSensorState.ACC_READ;
 
-        
-        //Log.d(LOGTAG, "uiAvailableServices: Setting notification");
-        //gatt = mBleWrapper.getGatt();
-        //c = gatt.getService(UUID_ACC_SERV).getCharacteristic(UUID_ACC_DATA);
-        //mBleWrapper.setNotificationForCharacteristic(c, true);
-        
-        //c = gatt.getService(UUID_IRT_SERV).getCharacteristic(UUID_IRT_DATA);
-        //mBleWrapper.requestCharacteristicValue(c);
-
-
-
-        //		if (c.getValue()!= null) {
-        //			Log.d(LOGTAG, "testButton: " + c.getValue()[0]);
-        //		}
+      
     }
     
+    private void initButtons(){
+    	//*******************	
+        // Read button onClick init
+        //*******************
+        final Button button = (Button) findViewById(R.id.readButton);
+        button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+            	handler.postDelayed(runnable, 100);
+            	Log.d(LOGTAG, "Start polling TI sensorTag");
+            }
+        });
+        
+        final Button button2 = (Button) findViewById(R.id.stopButton);
+        button2.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+            	handler.removeCallbacks(runnable);
+            	Log.d(LOGTAG, "Stop polling TI sensorTag");
+            }
+        });
+    }
+    
+    
+    private Runnable runnable = new Runnable() {
+    	   @Override
+    	   public void run() {
+    	       	BluetoothGatt gatt;
+                BluetoothGattCharacteristic c;
+
+                if (!mBleWrapper.isConnected()) {
+                    return;
+                }
+                // MANUALLY POLL
+                Log.d(LOGTAG, "testButton: Reading acc");
+                gatt = mBleWrapper.getGatt();
+                c = gatt.getService(UUID_ACC_SERV).getCharacteristic(UUID_ACC_DATA);
+                mBleWrapper.requestCharacteristicValue(c);
+                mState = mSensorState.ACC_READ;
+                
+    	        handler.postDelayed(this, 100);
+    	        
+    	        
+    	   }
+    	};
 
     
 }
