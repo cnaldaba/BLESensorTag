@@ -4,6 +4,7 @@
     <string name="app_name">BLESensorTag</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
-    <string name="readTxt">Read</string>
+    <string name="readTxt">Read Device 1</string>
+    <string name="readTxt2">Read Device 2</string>
 
 </resources>

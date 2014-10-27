@@ -275,10 +275,10 @@ public class MainActivity extends Activity {
             
             
             //Request Device 2 data
-            if (mBleWrapper2.isConnected()) {
+            /*if (mBleWrapper2.isConnected()) {
             	// requests an accelerometer read
                 readDevice2();
-            }
+            }*/
           
         }
         
@@ -326,200 +326,204 @@ public class MainActivity extends Activity {
         //*******************	
         // If a device is found
         //*******************
-        @Override
-        public void uiDeviceFound(final BluetoothDevice device,final int rssi,final byte[] record)
-        {
-        	String msg = "uiDeviceFound: "+device.getName()+", "+rssi+", "+ String.valueOf(rssi);
-        			Log.d("DEBUG", "uiDeviceFound: " + msg);
-        			
- 
-        		      handler.post(new Runnable(){
-        					@Override
-        					public void run() {
-        						
-        						if (BTArrayAdapter.isEmpty()){
-        							BTArrayAdapter.add(device.getName()+ "\n" + device.getAddress());
-        						}
-        						else{
-        						for(int i = 0; i<=10; i++){
-        							String item = (String) BTArrayAdapter.getItem(i);
-        							String[] separated = item.split("\n");
-        							//String device  = separated[0];
-        							String address  = separated[1];
-        							if (!address.equals(device.getAddress())){
-        								BTArrayAdapter.add(device.getName()+ "\n" + device.getAddress());
-        							}
-        							else{
-        								return;
-        							}
-        						}
-        						}
-        						
-        						
-        					}
-        		        	
-        		         });
+        	  @Override
+              public void uiDeviceFound(final BluetoothDevice device,final int rssi,final byte[] record)
+              {
+              	String msg = "uiDeviceFound: "+device.getName()+", "+rssi+", "+ String.valueOf(rssi);
+              			Log.d("DEBUG", "uiDeviceFound: " + msg);
+              			
+       
+              		      handler.post(new Runnable(){
+              					@Override
+              					public void run() {
+              						
+              						if (BTArrayAdapter.isEmpty()){
+              							BTArrayAdapter.add(device.getName()+ "\n" + device.getAddress());
+              						}
+              						else{
+              						for(int i = 0; i<=10; i++){
+              							String item = (String) BTArrayAdapter.getItem(i);
+              							String[] separated = item.split("\n");
+              							//String device  = separated[0];
+              							String address  = separated[1];
+              							if (!address.equals(device.getAddress())){
+              								BTArrayAdapter.add(device.getName()+ "\n" + device.getAddress());
+              							}
+              							else{
+              								return;
+              							}
+              						}
+              						}
+              						
+              						
+              					}
+              		        	
+              		         });
 
-        		      
-        		    
-      			
+              		      
+              		    
+            			
 
-        }
-        //*******************	
-        // Stores BLE device's services and enables them
-        //*******************
-        @Override
-        public void uiAvailableServices(BluetoothGatt gatt, BluetoothDevice device, List <BluetoothGattService> services)
-        {
-            BluetoothGattCharacteristic c;
-            BluetoothGattDescriptor d;
-            //Retrieves Services:
-        	for (BluetoothGattService service : services)
-        		{
-        			String serviceName = BleNamesResolver.resolveUuid(service.getUuid().toString());
-        			Log.d(LOGTAG, serviceName);
-                    gattList += serviceName + "\n";
+              }
+              //*******************	
+              // Stores BLE device's services and enables them
+              //*******************
+              @Override
+              public void uiAvailableServices(BluetoothGatt gatt, BluetoothDevice device, List <BluetoothGattService> services)
+              {
+                  BluetoothGattCharacteristic c;
+                  BluetoothGattDescriptor d;
+                  //Retrieves Services:
+              	for (BluetoothGattService service : services)
+              		{
+              			String serviceName = BleNamesResolver.resolveUuid(service.getUuid().toString());
+              			Log.d(LOGTAG, serviceName);
+                          gattList += serviceName + "\n";
 
-                    mBleWrapper2.getCharacteristicsForService(service);
-        		}
-            //Enable services:
-            Log.d(LOGTAG, "uiAvailableServices 2: Enabling services");
-            c = gatt.getService(UUID_ACC_SERV).getCharacteristic(UUID_ACC_CONF);
-            mBleWrapper2.writeDataToCharacteristic(c, new byte[] {0x01});
-            mState2 = mSensorState.ACC_ENABLE;
-        }
-        
-        @Override
-        public void uiCharacteristicForService(	BluetoothGatt gatt, 
-                BluetoothDevice device, 
-                BluetoothGattService service,
-                List<BluetoothGattCharacteristic> chars) 
-        {
-            super.uiCharacteristicForService(gatt, device, service, chars);
-            for (BluetoothGattCharacteristic c : chars)
-            {
-                String charName = BleNamesResolver.resolveCharacteristicName(c.getUuid().toString());
-                Log.d(LOGTAG, charName);
-                gattList += "Characteristic: " + charName + "\n";
-            }
-        }
-        //*******************	
-        // Successful Write function
-        //******************* 
-        @Override
-        public void uiSuccessfulWrite(	BluetoothGatt gatt,
-                                        BluetoothDevice device, 
-                                        BluetoothGattService service,
-                                        BluetoothGattCharacteristic ch, 
-                                        String description) 
-        {
-            BluetoothGattCharacteristic c;
+                          mBleWrapper2.getCharacteristicsForService(service);
+              		}
+                  //Enable services:
+                  Log.d(LOGTAG, "DEVICE 2 uiAvailableServices: Enabling services");
+                  c = gatt.getService(UUID_ACC_SERV).getCharacteristic(UUID_ACC_CONF);
+                  mBleWrapper2.writeDataToCharacteristic(c, new byte[] {0x01});
+                  mState2 = mSensorState.ACC_ENABLE;
+              }
+              
+              @Override
+              public void uiCharacteristicForService(	BluetoothGatt gatt, 
+                      BluetoothDevice device, 
+                      BluetoothGattService service,
+                      List<BluetoothGattCharacteristic> chars) 
+              {
+                  super.uiCharacteristicForService(gatt, device, service, chars);
+                  for (BluetoothGattCharacteristic c : chars)
+                  {
+                      String charName = BleNamesResolver.resolveCharacteristicName(c.getUuid().toString());
+                      Log.d(LOGTAG, charName);
+                      gattList += "Characteristic: " + charName + "\n";
+                  }
+              }
+              //*******************	
+              // Successful Write function
+              //******************* 
+              @Override
+              public void uiSuccessfulWrite(	BluetoothGatt gatt,
+                                              BluetoothDevice device, 
+                                              BluetoothGattService service,
+                                              BluetoothGattCharacteristic ch, 
+                                              String description) 
+              {
+                  BluetoothGattCharacteristic c;
 
-            super.uiSuccessfulWrite(gatt, device, service, ch, description);
-            Log.d(LOGTAG, "DEVICE 2: uiSuccessfulWrite");
+                  super.uiSuccessfulWrite(gatt, device, service, ch, description);
+                  Log.d(LOGTAG, "DEVICE 2  uiSuccessfulWrite");
 
-            switch (mState)
-            {
-            case ACC_ENABLE:
-            	Log.d(LOGTAG, " DEVICE 2 uiSuccessfulWrite: Successfully enabled accelerometer");
-            	  MainActivity.this.runOnUiThread(new Runnable() {
-    		          public void run() {
-    		              Toast.makeText(MainActivity.this, "DEVICE 2: Successfully enabled accelerometers", Toast.LENGTH_SHORT).show();
+                  switch (mState2)
+                  {
+                  case ACC_ENABLE:
+                  	Log.d(LOGTAG, "DEVICE 2 uiSuccessfulWrite: Successfully enabled accelerometer");
+                  	  MainActivity.this.runOnUiThread(new Runnable() {
+          		          public void run() {
+          		              Toast.makeText(MainActivity.this, "Successfully enabled DEVICE 2 accelerometers", Toast.LENGTH_SHORT).show();
 
-    		          }
-    		      });
-                break;
-            case ACC_READ:
-                Log.d(LOGTAG, "DEVICE 2 uiSuccessfulWrite: state = ACC_READ");					
-                break;
+          		          }
+          		      });
+                      break;
+                  case ACC_READ:
+                      Log.d(LOGTAG, "DEVICE 2 uiSuccessfulWrite: state = ACC_READ");					
+                      break;
 
-            default:
-                break;
-            }
-        }
-        
-        @Override
-        public void uiFailedWrite(	BluetoothGatt gatt,
-                                    BluetoothDevice device, 
-                                    BluetoothGattService service,
-                                    BluetoothGattCharacteristic ch, 
-                                    String description) 
-        {
-            super.uiFailedWrite(gatt, device, service, ch, description);
-            Log.d(LOGTAG, "uiFailedWrite");
-        }
-        
-        @Override
-        public void uiNewValueForCharacteristic(BluetoothGatt gatt,
-                                                BluetoothDevice device, 
-                                                BluetoothGattService service,
-                                                BluetoothGattCharacteristic ch, 
-                                                String strValue,
-                                                int intValue, 
-                                                byte[] rawValue, 
-                                                String timestamp,
-                                                final float[] vector) 
-        {
-            
-        	super.uiNewValueForCharacteristic(gatt, device, service, ch, strValue, intValue, rawValue, timestamp,vector);
-            
-            Log.d(LOGTAG, "uiNewValueForCharacteristic");
-            // decode current read operation
-            switch (mState)
-            {
-            	case ACC_READ:
-            		Log.d(LOGTAG, "DEVICE 2 uiNewValueForCharacteristic: Accelerometer data:" + vector[0] +  "," + vector[1] +  "," + vector[2] );
-            		//Sends data to main UI thread
-            		
-            	      handler.post(new Runnable(){
-            				@Override
-            				public void run() {
-            					TextView t;
-                				t = (TextView)findViewById(R.id.accelText2);
-                				t.setText("Accelerometer data :" + vector[0] +  "," + vector[1] +  "," + vector[2]);
-            				}
-            	        	
-            	         });
-            		
-            	break;
-            }
-            for (byte b:rawValue)
-            {
-            Log.d(LOGTAG, "DEVICE 2 Val: " + b);
-            }
-        }
-        
-        @Override
-        public void uiDeviceConnected(BluetoothGatt gatt, final BluetoothDevice device) 
-        {
-            Log.d(LOGTAG, "uiDeviceConnected: State = " + mBleWrapper2.getAdapter().getState());
-            MainActivity.this.runOnUiThread(new Runnable() {
-		          public void run() {
-		              Toast.makeText(MainActivity.this, "Device 2 connected" + device.getName(), Toast.LENGTH_SHORT).show();
+                  default:
+                      break;
+                  }
+              }
+              
+              @Override
+              public void uiFailedWrite(	BluetoothGatt gatt,
+                                          BluetoothDevice device, 
+                                          BluetoothGattService service,
+                                          BluetoothGattCharacteristic ch, 
+                                          String description) 
+              {
+                  super.uiFailedWrite(gatt, device, service, ch, description);
+                  Log.d(LOGTAG, "DEVICE 2 uiFailedWrite");
+              }
+              
+              @Override
+              public void uiNewValueForCharacteristic(BluetoothGatt gatt,
+                                                      BluetoothDevice device, 
+                                                      BluetoothGattService service,
+                                                      BluetoothGattCharacteristic ch, 
+                                                      String strValue,
+                                                      int intValue, 
+                                                      byte[] rawValue, 
+                                                      String timestamp,
+                                                      final float[] vector) 
+              {
+                  
+              	super.uiNewValueForCharacteristic(gatt, device, service, ch, strValue, intValue, rawValue, timestamp,vector);
+                  
+                  Log.d(LOGTAG, "DEVICE 2 uiNewValueForCharacteristic");
+                  // decode current read operation
+                  switch (mState2)
+                  {
+                  	case ACC_READ:
+                  		Log.d(LOGTAG, "DEVICE 2 uiNewValueForCharacteristic: Accelerometer data:" + vector[0] +  "," + vector[1] +  "," + vector[2] );
+                  		//Sends data to main UI thread
+                  		
+                  	      handler.post(new Runnable(){
+                  				@Override
+                  				public void run() {
+                  					TextView t;
+                      				t = (TextView)findViewById(R.id.accelText2);
+                      				t.setText("Accelerometer data:" + vector[0] +  "," + vector[1] +  "," + vector[2]);
+                  				}
+                  	        	
+                  	         });
+                  		
+                  	break;
+                  }
+                  for (byte b:rawValue)
+                  {
+                  Log.d(LOGTAG, "DEVICE 2 Val: " + b);
+                  }
+                  
+                  
+                  
+                
+              }
+              
+              @Override
+              public void uiDeviceConnected(BluetoothGatt gatt, final BluetoothDevice device) 
+              {
+                  Log.d(LOGTAG, "DEVICE 2 uiDeviceConnected: State = " + mBleWrapper2.getAdapter().getState());
+                  MainActivity.this.runOnUiThread(new Runnable() {
+      		          public void run() {
+      		              Toast.makeText(MainActivity.this, "Device 2 connected" + device.getName(), Toast.LENGTH_SHORT).show();
 
-		          }
-		      });
-        }
+      		          }
+      		      });
+              }
 
-        @Override
-        public void uiDeviceDisconnected(BluetoothGatt gatt, BluetoothDevice device) {
-            Log.d(LOGTAG, "DEVICE 2 uiDeviceDisconnected: State = " + mBleWrapper.getAdapter().getState());	
-            gatt.disconnect();
-        }
-        
-        
-        @Override
-        public void uiGotNotification(	BluetoothGatt gatt,
-                BluetoothDevice device, 
-                BluetoothGattService service,
-                BluetoothGattCharacteristic characteristic) 
-        {
-            super.uiGotNotification(gatt, device, service, characteristic);
-            String ch = BleNamesResolver.resolveCharacteristicName(characteristic.getUuid().toString());
+              @Override
+              public void uiDeviceDisconnected(BluetoothGatt gatt, BluetoothDevice device) {
+                  Log.d(LOGTAG, "DEVICE 2 uiDeviceDisconnected: State = " + mBleWrapper2.getAdapter().getState());	
+                  gatt.disconnect();
+              }
+              
+              
+              @Override
+              public void uiGotNotification(	BluetoothGatt gatt,
+                      BluetoothDevice device, 
+                      BluetoothGattService service,
+                      BluetoothGattCharacteristic characteristic) 
+              {
+                  super.uiGotNotification(gatt, device, service, characteristic);
+                  String ch = BleNamesResolver.resolveCharacteristicName(characteristic.getUuid().toString());
 
-            Log.d(LOGTAG,  "uiGotNotification: " + ch);
-        }
-        });
+                  Log.d(LOGTAG,  "DEVICE 2 uiGotNotification: " + ch);
+              }
+              });
         
         //*******************	
         // Checks for BLE
@@ -552,8 +556,14 @@ public class MainActivity extends Activity {
 			//String device  = separated[0];
 			String address  = separated[1];
 			
-			boolean status;
+			boolean status = true;
+			
+			if (!mBleWrapper.isConnected()){
 			status = mBleWrapper.connect(address);
+			}
+			else if(!mBleWrapper2.isConnected()){
+				status = mBleWrapper2.connect(address);
+			}
 			
 			if (status == false)
 			{
@@ -583,6 +593,7 @@ public class MainActivity extends Activity {
     		}
     	// init ble wrapper
     	mBleWrapper.initialize();
+    	mBleWrapper2.initialize();
     }
     
     //--------------------------------------------------------------------
@@ -593,6 +604,9 @@ public class MainActivity extends Activity {
     super.onPause();
     mBleWrapper.diconnect();
     mBleWrapper.close();
+    
+    mBleWrapper2.diconnect();
+    mBleWrapper2.close();
     }
     
     //--------------------------------------------------------------------
@@ -637,6 +651,25 @@ public class MainActivity extends Activity {
     		case R.id.action_test:
     			//testButton();
     			break;
+    		case R.id.action_scan2:
+    			Log.d(LOGTAG, "startScan");
+    			mBleWrapper2.startScanning();
+    			
+    			//Stops scanning after 10 seconds
+    			handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                    	mBleWrapper2.stopScanning();
+                    	Log.d(LOGTAG, "Stop Scanning");
+                    }
+                }, SCAN_PERIOD);
+    			break;
+    			
+    		case R.id.action_stop2:
+    			Log.d(LOGTAG, "StopScan");
+    			mBleWrapper2.stopScanning();
+    			break;
+    			
     		default:
     		break;
     		}
@@ -653,23 +686,45 @@ public class MainActivity extends Activity {
     
     private void initButtons(){
     	//*******************	
-        // Read button onClick init
+        // Read 1 button onClick init
         //*******************
         final Button button = (Button) findViewById(R.id.readButton);
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
             	handler.postDelayed(runnable, 100);
-            	Log.d(LOGTAG, "Start polling TI sensorTag");
+            	Log.d(LOGTAG, "Start polling TI sensorTag DEVICE 1");
             }
         });
        	//*******************	
-        // Stop button init
+        // Stop 1 button init
         //*******************
         final Button button2 = (Button) findViewById(R.id.stopButton);
         button2.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
             	handler.removeCallbacks(runnable);
-            	Log.d(LOGTAG, "Stop polling TI sensorTag");
+            	Log.d(LOGTAG, "Stop polling TI sensorTag DEVICE 1");
+            }
+        });
+        
+        
+    	//*******************	
+        // Read 1 button onClick init
+        //*******************
+        final Button button3 = (Button) findViewById(R.id.readButton2);
+        button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+            	handler.postDelayed(runnable2, 100);
+            	Log.d(LOGTAG, "Start polling TI sensorTag DEVICE 2");
+            }
+        });
+       	//*******************	
+        // Stop 1 button init
+        //*******************
+        final Button button4 = (Button) findViewById(R.id.stopButton2);
+        button2.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+            	handler.removeCallbacks(runnable2);
+            	Log.d(LOGTAG, "Stop polling TI sensorTag DEVICE 2");
             }
         });
     }
@@ -694,6 +749,22 @@ public class MainActivity extends Activity {
     	        
     	   }
     	};
+    	
+        private Runnable runnable2 = new Runnable() {
+     	   @Override
+     	   public void run() {
+     	       
+
+                 if (!mBleWrapper2.isConnected()) {
+                     return;
+                 }
+                 // requests an accelerometer read
+                readDevice2();
+     	        handler.postDelayed(this, 100);
+     	        
+     	        
+     	   }
+     	};
     	private void readDevice1(){
     		BluetoothGatt gatt;
             BluetoothGattCharacteristic c;
