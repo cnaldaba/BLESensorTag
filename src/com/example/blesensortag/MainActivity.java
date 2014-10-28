@@ -275,10 +275,11 @@ public class MainActivity extends Activity {
             
             
             //Request Device 2 data
-            /*if (mBleWrapper2.isConnected()) {
+            if (mBleWrapper2.isConnected()) {
             	// requests an accelerometer read
+            	Log.d(LOGTAG, "Request Device 2 acc read");
                 readDevice2();
-            }*/
+            }
           
         }
         
@@ -652,7 +653,7 @@ public class MainActivity extends Activity {
     			//testButton();
     			break;
     		case R.id.action_scan2:
-    			Log.d(LOGTAG, "startScan");
+    			/*Log.d(LOGTAG, "startScan");
     			mBleWrapper2.startScanning();
     			
     			//Stops scanning after 10 seconds
@@ -662,12 +663,12 @@ public class MainActivity extends Activity {
                     	mBleWrapper2.stopScanning();
                     	Log.d(LOGTAG, "Stop Scanning");
                     }
-                }, SCAN_PERIOD);
+                }, SCAN_PERIOD); */
     			break;
     			
     		case R.id.action_stop2:
-    			Log.d(LOGTAG, "StopScan");
-    			mBleWrapper2.stopScanning();
+    			/*Log.d(LOGTAG, "StopScan");
+    			mBleWrapper2.stopScanning();*/
     			break;
     			
     		default:
@@ -690,6 +691,7 @@ public class MainActivity extends Activity {
         //*******************
         final Button button = (Button) findViewById(R.id.readButton);
         button.setOnClickListener(new View.OnClickListener() {
+        	@Override
             public void onClick(View v) {
             	handler.postDelayed(runnable, 100);
             	Log.d(LOGTAG, "Start polling TI sensorTag DEVICE 1");
@@ -700,6 +702,7 @@ public class MainActivity extends Activity {
         //*******************
         final Button button2 = (Button) findViewById(R.id.stopButton);
         button2.setOnClickListener(new View.OnClickListener() {
+        	@Override
             public void onClick(View v) {
             	handler.removeCallbacks(runnable);
             	Log.d(LOGTAG, "Stop polling TI sensorTag DEVICE 1");
@@ -707,26 +710,7 @@ public class MainActivity extends Activity {
         });
         
         
-    	//*******************	
-        // Read 1 button onClick init
-        //*******************
-        final Button button3 = (Button) findViewById(R.id.readButton2);
-        button.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-            	handler.postDelayed(runnable2, 100);
-            	Log.d(LOGTAG, "Start polling TI sensorTag DEVICE 2");
-            }
-        });
-       	//*******************	
-        // Stop 1 button init
-        //*******************
-        final Button button4 = (Button) findViewById(R.id.stopButton2);
-        button2.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-            	handler.removeCallbacks(runnable2);
-            	Log.d(LOGTAG, "Stop polling TI sensorTag DEVICE 2");
-            }
-        });
+    	
     }
     
     
@@ -782,7 +766,7 @@ public class MainActivity extends Activity {
              gatt = mBleWrapper2.getGatt();
              c = gatt.getService(UUID_ACC_SERV).getCharacteristic(UUID_ACC_DATA);
              mBleWrapper2.requestCharacteristicValue(c);
-             mState = mSensorState.ACC_READ;
+             mState2 = mSensorState.ACC_READ;
     	}
 
     
