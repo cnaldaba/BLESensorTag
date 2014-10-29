@@ -11,6 +11,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
         android:orientation="vertical" >
 
         <Button
@@ -24,18 +26,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Stop Device 1" />
-
-        <Button
-            android:id="@+id/readButton2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/readTxt2" />
-
-        <Button
-            android:id="@+id/stopButton2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Stop Device 2" />
 
         <TextView
             android:id="@+id/accelText1"
@@ -58,6 +48,17 @@
             android:layout_height="172dp" >
         </ListView>
 
+        <Button
+            android:id="@+id/startRecording"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Start Recording" />
+
+        <Button
+            android:id="@+id/stopRecording"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Stop Recording" />
     </LinearLayout>
 
 </RelativeLayout>

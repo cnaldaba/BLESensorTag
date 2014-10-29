@@ -12,6 +12,7 @@ import android.bluetooth.BluetoothGattService;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
@@ -24,6 +25,11 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,6 +47,9 @@ public class MainActivity extends Activity {
     private mSensorState mState2;
     private String gattList = "";
     private TextView mTv;
+    
+    private enum mAppState {IDLE, RECORD};
+    private mAppState AppState;
     
     
     
@@ -95,6 +104,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         context = this;
+        
         //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@	
         // INITIALIZE mBleWrapper OBJECT
         //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -126,18 +136,19 @@ public class MainActivity extends Activity {
         							BTArrayAdapter.add(device.getName()+ "\n" + device.getAddress());
         						}
         						else{
-        						for(int i = 0; i<=10; i++){
-        							String item = (String) BTArrayAdapter.getItem(i);
-        							String[] separated = item.split("\n");
-        							//String device  = separated[0];
-        							String address  = separated[1];
-        							if (!address.equals(device.getAddress())){
-        								BTArrayAdapter.add(device.getName()+ "\n" + device.getAddress());
+        							for(int i = 0; i<=10; i++){
+        								String item = (String) BTArrayAdapter.getItem(i);
+        								String[] separated = item.split("\n");
+        								//String device  = separated[0];
+        								String address  = separated[1];
+        								if (address.equals(device.getAddress())){
+        									return;
+        								}
+        								else{
+        									//BTArrayAdapter.add(device.getName()+ "\n" + device.getAddress());
+        									BTArrayAdapter.add(device.getName()+ "\n" + device.getAddress());
+        								}
         							}
-        							else{
-        								return;
-        							}
-        						}
         						}
         						
         						
@@ -542,6 +553,17 @@ public class MainActivity extends Activity {
        initButtons();
        
        //*******************	
+       // Initializes application state
+       //*******************     
+       AppState = mAppState.IDLE;
+       
+       //*******************	
+       // Initialize App Folder
+       //*******************    
+       createAppFolder();
+       
+       
+       //*******************	
        // Initializes list for discovered devices
        //******************* 
        BTArrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
@@ -709,6 +731,17 @@ public class MainActivity extends Activity {
             }
         });
         
+        final Button button3 = (Button) findViewById(R.id.startRecording);
+        button3.setOnClickListener(new View.OnClickListener() {
+        	@Override
+            public void onClick(View v) {
+            	AppState = mAppState.RECORD;
+            	Log.d(LOGTAG, "Started Recording");
+            	Toast.makeText(MainActivity.this, "Started Recording", Toast.LENGTH_SHORT).show();
+
+            }
+        });
+        
         
     	
     }
@@ -768,6 +801,36 @@ public class MainActivity extends Activity {
              mBleWrapper2.requestCharacteristicValue(c);
              mState2 = mSensorState.ACC_READ;
     	}
+      	
+      	private void writeToFile(String data, String fileName){
+      		OutputStreamWriter outputStreamWriter;
+			try {
+				outputStreamWriter = new OutputStreamWriter(openFileOutput(fileName, Context.MODE_PRIVATE));
+				try {
+					outputStreamWriter.write(data);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+	            try {
+					outputStreamWriter.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			} catch (FileNotFoundException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+            
+      	}
+      	
+      	private void createAppFolder(){
+      		final String PATH = Environment.getExternalStorageDirectory() + "/BLESensorTag/";
+
+      		if(!(new File(PATH)).exists()) 
+      		new File(PATH).mkdirs();
+      	}
 
     
 }
