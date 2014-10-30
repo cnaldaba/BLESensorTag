@@ -51,6 +51,8 @@ public class MainActivity extends Activity {
     private enum mAppState {IDLE, RECORD};
     private mAppState AppState;
     
+    //Measurement parameters
+    private String fileName, filePath;
     
     
     //BLE device list
@@ -738,6 +740,17 @@ public class MainActivity extends Activity {
             	AppState = mAppState.RECORD;
             	Log.d(LOGTAG, "Started Recording");
             	Toast.makeText(MainActivity.this, "Started Recording", Toast.LENGTH_SHORT).show();
+
+            }
+        });
+        
+        final Button button4 = (Button) findViewById(R.id.stopRecording);
+        button4.setOnClickListener(new View.OnClickListener() {
+        	@Override
+            public void onClick(View v) {
+            	AppState = mAppState.IDLE;
+            	Log.d(LOGTAG, "Stopped Recording");
+            	Toast.makeText(MainActivity.this, "Stopped Recording", Toast.LENGTH_SHORT).show();
 
             }
         });
