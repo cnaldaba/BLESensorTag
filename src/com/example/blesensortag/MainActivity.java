@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
+import android.text.format.Time;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -288,10 +289,18 @@ public class MainActivity extends Activity {
             
             
             //Request Device 2 data
+            String data = vector[0] +  "," + vector[1] +  "," + vector[2];
+            
             if (mBleWrapper2.isConnected()) {
             	// requests an accelerometer read
             	Log.d(LOGTAG, "Request Device 2 acc read");
                 readDevice2();
+            }
+            else{
+            	if (  AppState == mAppState.RECORD){
+            	FileOperations fileOperations = new FileOperations();
+            	fileOperations.write(fileName, data,filePath, 0);
+            	}
             }
           
         }
@@ -563,7 +572,13 @@ public class MainActivity extends Activity {
        // Initialize App Folder
        //*******************    
        createAppFolder();
-       
+	   filePath = Environment.getExternalStorageDirectory() + "/BLESensorTag/";
+	   
+	   
+	   //*******************	
+       // Initialize FileOperations Class
+       //*******************    
+	   FileOperations fileOperations = new FileOperations();
        
        //*******************	
        // Initializes list for discovered devices
@@ -737,9 +752,19 @@ public class MainActivity extends Activity {
         button3.setOnClickListener(new View.OnClickListener() {
         	@Override
             public void onClick(View v) {
+        		if (AppState == mAppState.IDLE){
             	AppState = mAppState.RECORD;
             	Log.d(LOGTAG, "Started Recording");
             	Toast.makeText(MainActivity.this, "Started Recording", Toast.LENGTH_SHORT).show();
+            	
+            
+            	Time now = new Time();
+       		 	now.setToNow();
+       		 	fileName = "Data " + now.format("%Y-%m-%d %H-%M-%S") + ".txt";
+            	
+       		    
+       		 	
+        		}
 
             }
         });
@@ -748,9 +773,12 @@ public class MainActivity extends Activity {
         button4.setOnClickListener(new View.OnClickListener() {
         	@Override
             public void onClick(View v) {
+        		if (AppState == mAppState.RECORD){
             	AppState = mAppState.IDLE;
             	Log.d(LOGTAG, "Stopped Recording");
-            	Toast.makeText(MainActivity.this, "Stopped Recording", Toast.LENGTH_SHORT).show();
+            	String message = "Stopped Recording - Saved as: " + fileName;
+            	Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+        		}
 
             }
         });
@@ -815,32 +843,10 @@ public class MainActivity extends Activity {
              mState2 = mSensorState.ACC_READ;
     	}
       	
-      	private void writeToFile(String data, String fileName){
-      		OutputStreamWriter outputStreamWriter;
-			try {
-				outputStreamWriter = new OutputStreamWriter(openFileOutput(fileName, Context.MODE_PRIVATE));
-				try {
-					outputStreamWriter.write(data);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-	            try {
-					outputStreamWriter.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			} catch (FileNotFoundException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-            
-      	}
+      	
       	
       	private void createAppFolder(){
       		final String PATH = Environment.getExternalStorageDirectory() + "/BLESensorTag/";
-
       		if(!(new File(PATH)).exists()) 
       		new File(PATH).mkdirs();
       	}

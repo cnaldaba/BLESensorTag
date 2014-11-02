@@ -39,9 +39,11 @@ public class BleWrapper {
     /* creates BleWrapper object, set its parent activity and callback object */
     public BleWrapper(Activity parent, BleWrapperUiCallbacks callback) {
     	// Creates handler that is attached to UI thread
-    	
-    	
     	handler = new Handler(Looper.getMainLooper());
+    	
+    	//
+    	
+    	
     	this.mParent = parent;
     	mUiCallback = callback;
     	if(mUiCallback == null) mUiCallback = NULL_CALLBACK;
