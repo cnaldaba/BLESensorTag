@@ -287,18 +287,23 @@ public class MainActivity extends Activity {
             Log.d(LOGTAG, "DEVICE 1 Val: " + b);
             }
             
-            
+            FileOperations fileOperations = new FileOperations();
             //Request Device 2 data
             String data = vector[0] +  "," + vector[1] +  "," + vector[2];
             
             if (mBleWrapper2.isConnected()) {
             	// requests an accelerometer read
+            	if (  AppState == mAppState.RECORD){
+                	
+            	fileOperations.write(fileName, data,filePath, 1);
+            	}
+            	
             	Log.d(LOGTAG, "Request Device 2 acc read");
                 readDevice2();
             }
             else{
             	if (  AppState == mAppState.RECORD){
-            	FileOperations fileOperations = new FileOperations();
+            	
             	fileOperations.write(fileName, data,filePath, 0);
             	}
             }
@@ -511,6 +516,15 @@ public class MainActivity extends Activity {
                   Log.d(LOGTAG, "DEVICE 2 Val: " + b);
                   }
                   
+                  
+                  FileOperations fileOperations = new FileOperations();
+                  //Request Device 2 data
+                  String data = vector[0] +  "," + vector[1] +  "," + vector[2];
+                  
+                  if (  AppState == mAppState.RECORD){
+                  	
+                  	fileOperations.write(fileName, data,filePath, 2);
+                  	}
                   
                   
                 

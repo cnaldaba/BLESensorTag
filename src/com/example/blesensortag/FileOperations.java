@@ -18,7 +18,7 @@ import android.util.Log;
 
 public class FileOperations {
    
-   
+   private SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS", Locale.CANADA);
    public FileOperations() {
       }
    
@@ -39,12 +39,12 @@ public class FileOperations {
         BufferedWriter bw = new BufferedWriter(fw);
         
         String time;
-        Time now = new Time();
-		 now.setToNow();
-		 long millis = System.currentTimeMillis();
+        //Time now = new Time();
+		 //now.setToNow();
+		 //long millis = System.currentTimeMillis();
 		 //time =  now.format("%H:%M:%S");
 		 Calendar c = Calendar.getInstance();
-		 SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS", Locale.CANADA);
+		 
 		 time = sdf.format(c.getTime());
         
         String writeThis;
