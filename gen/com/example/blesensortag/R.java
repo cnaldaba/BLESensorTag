@@ -28,10 +28,8 @@ public final class R {
         public static final int accelText1=0x7f080002;
         public static final int accelText2=0x7f080003;
         public static final int action_scan=0x7f080008;
-        public static final int action_scan2=0x7f08000b;
         public static final int action_settings=0x7f080007;
         public static final int action_stop=0x7f080009;
-        public static final int action_stop2=0x7f08000c;
         public static final int action_test=0x7f08000a;
         public static final int listView1=0x7f080004;
         public static final int readButton=0x7f080000;

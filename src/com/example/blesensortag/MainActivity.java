@@ -53,7 +53,7 @@ public class MainActivity extends Activity {
     private mAppState AppState;
     
     //Measurement parameters
-    private String fileName, filePath;
+    private String fileNameD1, fileNameD2, filePath;
     
     
     //BLE device list
@@ -295,16 +295,16 @@ public class MainActivity extends Activity {
             	// requests an accelerometer read
             	if (  AppState == mAppState.RECORD){
                 	
-            	fileOperations.write(fileName, data,filePath, 1);
+            	fileOperations.write(fileNameD1, data,filePath, 1);
             	}
             	
-            	Log.d(LOGTAG, "Request Device 2 acc read");
-                readDevice2();
+            	//Log.d(LOGTAG, "Request Device 2 acc read");
+                //readDevice2();
             }
             else{
             	if (  AppState == mAppState.RECORD){
             	
-            	fileOperations.write(fileName, data,filePath, 0);
+            	fileOperations.write(fileNameD1, data,filePath, 0);
             	}
             }
           
@@ -505,26 +505,28 @@ public class MainActivity extends Activity {
                   					TextView t;
                       				t = (TextView)findViewById(R.id.accelText2);
                       				t.setText("Accelerometer data:" + vector[0] +  "," + vector[1] +  "," + vector[2]);
+                  				
+                      				FileOperations fileOperations = new FileOperations();
+                                    
+                                    String data = vector[0] +  "," + vector[1] +  "," + vector[2];
+                                    
+                                    if (  AppState == mAppState.RECORD){
+                                    	
+                                    	fileOperations.write(fileNameD2, data,filePath, 2);
+                                    	}
                   				}
                   	        	
                   	         });
                   		
                   	break;
                   }
-                  for (byte b:rawValue)
+                  /*for (byte b:rawValue)
                   {
                   Log.d(LOGTAG, "DEVICE 2 Val: " + b);
-                  }
+                  }*/
                   
                   
-                  FileOperations fileOperations = new FileOperations();
-                  //Request Device 2 data
-                  String data = vector[0] +  "," + vector[1] +  "," + vector[2];
                   
-                  if (  AppState == mAppState.RECORD){
-                  	
-                  	fileOperations.write(fileName, data,filePath, 2);
-                  	}
                   
                   
                 
@@ -705,24 +707,7 @@ public class MainActivity extends Activity {
     		case R.id.action_test:
     			//testButton();
     			break;
-    		case R.id.action_scan2:
-    			/*Log.d(LOGTAG, "startScan");
-    			mBleWrapper2.startScanning();
-    			
-    			//Stops scanning after 10 seconds
-    			handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                    	mBleWrapper2.stopScanning();
-                    	Log.d(LOGTAG, "Stop Scanning");
-                    }
-                }, SCAN_PERIOD); */
-    			break;
-    			
-    		case R.id.action_stop2:
-    			/*Log.d(LOGTAG, "StopScan");
-    			mBleWrapper2.stopScanning();*/
-    			break;
+    		
     			
     		default:
     		break;
@@ -762,6 +747,10 @@ public class MainActivity extends Activity {
             }
         });
         
+        
+    	//*******************	
+        // Record button init
+        //*******************
         final Button button3 = (Button) findViewById(R.id.startRecording);
         button3.setOnClickListener(new View.OnClickListener() {
         	@Override
@@ -774,15 +763,17 @@ public class MainActivity extends Activity {
             
             	Time now = new Time();
        		 	now.setToNow();
-       		 	fileName = "Data " + now.format("%Y-%m-%d %H-%M-%S") + ".txt";
-            	
+       		 	fileNameD1 = "DEVICE1 " + now.format("%Y-%m-%d %H-%M-%S") + ".txt";
+       		    fileNameD2 = "DEVICE2 " + now.format("%Y-%m-%d %H-%M-%S") + ".txt";
        		    
        		 	
         		}
 
             }
         });
-        
+        //*******************	
+        // Stop Recording button init
+        //*******************
         final Button button4 = (Button) findViewById(R.id.stopRecording);
         button4.setOnClickListener(new View.OnClickListener() {
         	@Override
@@ -790,7 +781,7 @@ public class MainActivity extends Activity {
         		if (AppState == mAppState.RECORD){
             	AppState = mAppState.IDLE;
             	Log.d(LOGTAG, "Stopped Recording");
-            	String message = "Stopped Recording - Saved as: " + fileName;
+            	String message = "Stopped Recording - Saved as: " + fileNameD1;
             	Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
         		}
 
@@ -816,6 +807,8 @@ public class MainActivity extends Activity {
                 }
                 // requests an accelerometer read
                 readDevice1();
+            	//Log.d(LOGTAG, "Request Device 2 acc read");
+                readDevice2();
     	        handler.postDelayed(this, 100);
     	        
     	        

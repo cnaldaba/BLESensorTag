@@ -50,17 +50,18 @@ public class FileOperations {
         String writeThis;
         switch (recordState){
         case 0:
-        	writeThis = time + ',' + fcontent;
+        	writeThis =  time + ',' + fcontent;
         	Log.d("FileOperations", writeThis);
         	fw.append(writeThis);
         	fw.append("\r\n");
         	break;
         case 1:
-        	writeThis = time + ',' + fcontent + ',';
+        	writeThis = "d1," + time + ',' + fcontent + ',';
         	fw.append(writeThis);
+        	fw.append("\r\n");
         	break;
         case 2:
-        	writeThis = time + ',' + fcontent;
+        	writeThis = "d2," +time + ',' + fcontent;
         	fw.append(writeThis);
         	fw.append("\r\n");
         	break;

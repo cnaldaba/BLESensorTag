@@ -1,7 +1,6 @@
 package com.example.blesensortag;
 
 import java.util.HashMap;
-
 import android.util.SparseArray;
 
 public class BleNamesResolver {
