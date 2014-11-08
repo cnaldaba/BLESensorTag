@@ -55,6 +55,11 @@ public class MainActivity extends Activity {
     //Measurement parameters
     private String fileNameD1, fileNameD2, filePath;
     
+    //Stores Data in array
+    private float[] dataStorage;
+    
+    public dataArray[] array_2d = new dataArray[2];
+    
     
     //BLE device list
     private ArrayAdapter<String> BTArrayAdapter;
@@ -108,6 +113,11 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         context = this;
         
+        final float dataStorage[];
+        dataStorage = new float[6];
+       
+        
+       
         //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@	
         // INITIALIZE mBleWrapper OBJECT
         //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -262,12 +272,12 @@ public class MainActivity extends Activity {
             
         	super.uiNewValueForCharacteristic(gatt, device, service, ch, strValue, intValue, rawValue, timestamp,vector);
             
-            Log.d(LOGTAG, "DEVICE 1 uiNewValueForCharacteristic");
+            //Log.d(LOGTAG, "DEVICE 1 uiNewValueForCharacteristic");
             // decode current read operation
             switch (mState)
             {
             	case ACC_READ:
-            		Log.d(LOGTAG, "DEVICE 1 uiNewValueForCharacteristic: Accelerometer data:" + vector[0] +  "," + vector[1] +  "," + vector[2] );
+            		//Log.d(LOGTAG, "DEVICE 1 uiNewValueForCharacteristic: Accelerometer data:" + vector[0] +  "," + vector[1] +  "," + vector[2] );
             		//Sends data to main UI thread
             		
             	      handler.post(new Runnable(){
@@ -276,37 +286,16 @@ public class MainActivity extends Activity {
             					TextView t;
                 				t = (TextView)findViewById(R.id.accelText1);
                 				t.setText("Accelerometer data:" + vector[0] +  "," + vector[1] +  "," + vector[2]);
+            				
+                				dataArray data = new dataArray(vector[0], vector[1], vector[2]);
+                  				array_2d[0] = data;
             				}
             	        	
             	         });
             		
             	break;
             }
-            for (byte b:rawValue)
-            {
-            Log.d(LOGTAG, "DEVICE 1 Val: " + b);
-            }
-            
-            FileOperations fileOperations = new FileOperations();
-            //Request Device 2 data
-            String data = vector[0] +  "," + vector[1] +  "," + vector[2];
-            
-            if (mBleWrapper2.isConnected()) {
-            	// requests an accelerometer read
-            	if (  AppState == mAppState.RECORD){
-                	
-            	fileOperations.write(fileNameD1, data,filePath, 1);
-            	}
-            	
-            	//Log.d(LOGTAG, "Request Device 2 acc read");
-                //readDevice2();
-            }
-            else{
-            	if (  AppState == mAppState.RECORD){
-            	
-            	fileOperations.write(fileNameD1, data,filePath, 0);
-            	}
-            }
+        	
           
         }
         
@@ -476,7 +465,9 @@ public class MainActivity extends Activity {
                   super.uiFailedWrite(gatt, device, service, ch, description);
                   Log.d(LOGTAG, "DEVICE 2 uiFailedWrite");
               }
-              
+              //*******************	
+              //WHERE YOU CAN RETRIEVE NEW ACCLEROMETER VALUES
+              //******************* 
               @Override
               public void uiNewValueForCharacteristic(BluetoothGatt gatt,
                                                       BluetoothDevice device, 
@@ -505,31 +496,13 @@ public class MainActivity extends Activity {
                   					TextView t;
                       				t = (TextView)findViewById(R.id.accelText2);
                       				t.setText("Accelerometer data:" + vector[0] +  "," + vector[1] +  "," + vector[2]);
-                  				
-                      				FileOperations fileOperations = new FileOperations();
-                                    
-                                    String data = vector[0] +  "," + vector[1] +  "," + vector[2];
-                                    
-                                    if (  AppState == mAppState.RECORD){
-                                    	
-                                    	fileOperations.write(fileNameD2, data,filePath, 2);
-                                    	}
+    			
+                      				dataArray data = new dataArray(vector[0], vector[1], vector[2]);
+                      				array_2d[1] = data;
                   				}
-                  	        	
                   	         });
-                  		
                   	break;
                   }
-                  /*for (byte b:rawValue)
-                  {
-                  Log.d(LOGTAG, "DEVICE 2 Val: " + b);
-                  }*/
-                  
-                  
-                  
-                  
-                  
-                
               }
               
               @Override
@@ -592,9 +565,10 @@ public class MainActivity extends Activity {
 	   
 	   
 	   //*******************	
-       // Initialize FileOperations Class
-       //*******************    
-	   FileOperations fileOperations = new FileOperations();
+       // Create dataStorage Array
+       //*******************
+	   //float dataStorage[] = {0.0f, 0.0f, 0.0f, 0.0f,0.0f,0.0f};
+	  
        
        //*******************	
        // Initializes list for discovered devices
@@ -811,6 +785,17 @@ public class MainActivity extends Activity {
                 readDevice2();
     	        handler.postDelayed(this, 100);
     	        
+    	        
+    	        
+                
+               if (  AppState == mAppState.RECORD){
+            	   FileOperations fileOperations = new FileOperations();
+                   String data1 = "D1," + array_2d[0].xaxis +  "," + array_2d[0].yaxis +  "," + array_2d[0].zaxis;
+                   String data2 = ",D2," + array_2d[1].xaxis +  "," + array_2d[1].yaxis +  "," + array_2d[1].zaxis;
+                   String data = data1 + data2;
+                
+                   fileOperations.write(fileNameD2, data,filePath, 3);
+               }
     	        
     	   }
     	};

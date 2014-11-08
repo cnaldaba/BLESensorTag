@@ -51,12 +51,12 @@ public class FileOperations {
         switch (recordState){
         case 0:
         	writeThis =  time + ',' + fcontent;
-        	Log.d("FileOperations", writeThis);
+        	//Log.d("FileOperations", writeThis);
         	fw.append(writeThis);
         	fw.append("\r\n");
         	break;
         case 1:
-        	writeThis = "d1," + time + ',' + fcontent + ',';
+        	writeThis = "d1," + time + ',' + fcontent;
         	fw.append(writeThis);
         	fw.append("\r\n");
         	break;
@@ -65,7 +65,11 @@ public class FileOperations {
         	fw.append(writeThis);
         	fw.append("\r\n");
         	break;
-        	
+        case 3:
+        	writeThis = time + ',' + fcontent;
+           	fw.append(writeThis);
+        	fw.append("\r\n");
+        	break;
         default:
         	break;
         }
